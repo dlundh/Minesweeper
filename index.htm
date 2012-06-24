@@ -1,31 +1,35 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title></title>
     <script src="Scripts/jquery-1.6.1.min.js" type="text/javascript"></script>
     <link href="styles.css" rel="stylesheet" type="text/css" />
-    <script type="text/javascript">
-        $(document).ready(function () {
-            mineCount = document.getElementById("mineCount").value;
-            xTiles = document.getElementById("boardSize").value;
-            xTiles = +xTiles;
-            tileCount = xTiles * xTiles;
-            if (mineCount > (tileCount)) {
-                $("#mineCount").val(tileCount);
-                mineCount = tileCount;
-            }
-            var board = new Board(xTiles, mineCount);
-            board.setBoard();
+    <script type="text/javascript">  
+        $(document).ready(function () {            
+            start();
         });
 
         $(document).bind("contextmenu", function (e) {
             return false;
         });
         
+        function start() {
+    		var mineCount = document.getElementById("mineCount").value;
+        	var xTiles = document.getElementById("boardSize").value;
+            var tileCount = xTiles * xTiles;
+            xTiles = +xTiles;
+            if (mineCount > (tileCount)) {
+                $("#mineCount").val(tileCount);
+                mineCount = tileCount;
+            }            
+            var board = new Board(xTiles, mineCount);
+            board.setBoard();
+        }        
+        
         function Board (xTiles, mineCount) {
-        	self = this;
-        	this.xTiles = xTiles;
+        	var self = this;
+        	this.xTiles = xTiles;        	
         	this.mineCount = mineCount;
         	this.mineLocations = [];
         	this.adjacentTiles = [];
@@ -85,8 +89,8 @@
         	};
         	this.addMines = function () {
         		var i = 0;
-	            while (i < this.mineCount) {                
-	                var mineId = Math.floor(Math.random() * (tileCount));
+	            while (i < self.mineCount) {                
+	                var mineId = Math.floor(Math.random() * (self.tileCount()));
 	                if (self.mineLocations[mineId] == null) {
 	                    self.mineLocations[mineId] = 1;
 	                    i++;                    
@@ -98,6 +102,7 @@
 	            //var tileWidth = $("#board").width() / xTiles;
 	            var tileWidth = 60;
 	            var board = document.getElementById('board');
+	            board.innerHTML = "";
 	            board.setAttribute('style', 'width: ' + (tileWidth * self.xTiles) + 'px;height: ' + (tileWidth * self.xTiles) + 'px');
 	            
 	            for (var i = 1; i <= self.tileCount(); i++) {
@@ -317,7 +322,7 @@
                     <td>Number of tiles per side: </td>
                     <td><input id="boardSize" value="8" size="3" type="text" /></td>
                     <td rowspan="2">
-                        <input id="startButton" onClick="window.location.reload()" class="blue_button" type="button" value="New Game" />&nbsp;
+                        <input id="startButton" onclick="start()" class="blue_button" type="button" value="New Game" />&nbsp;
                         <input id="validateButton" class="blue_button" type="button" value="Validate" />&nbsp;
                         <input id="cheatButton" class="blue_button" type="button" value="Cheat" />&nbsp;
                     </td>                    
