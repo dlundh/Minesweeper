@@ -1,0 +1,337 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="Scripts/jquery-1.6.1.min.js" type="text/javascript"></script>
+    <link href="styles.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            mineCount = document.getElementById("mineCount").value;
+            xTiles = document.getElementById("boardSize").value;
+            xTiles = +xTiles;
+            tileCount = xTiles * xTiles;
+            if (mineCount > (tileCount)) {
+                $("#mineCount").val(tileCount);
+                mineCount = tileCount;
+            }
+            var board = new Board(xTiles, mineCount);
+            board.setBoard();
+        });
+
+        $(document).bind("contextmenu", function (e) {
+            return false;
+        });
+        
+        function Board (xTiles, mineCount) {
+        	self = this;
+        	this.xTiles = xTiles;
+        	this.mineCount = mineCount;
+        	this.mineLocations = [];
+        	this.adjacentTiles = [];
+        	this.lastId;
+        	//fix validation
+        	var validateButton = document.getElementById("validateButton");
+        	var cheatButton = document.getElementById("cheatButton");
+        	validateButton.addEventListener("click", function () {self.checkWin();}, false);
+        	cheatButton.addEventListener("click", function () {self.cheat();}, false);
+        	this.tileCount = function () {
+        		return xTiles * xTiles;
+        	}
+        	this.createTile = function (width, id) {
+        		var newDiv = document.createElement('div');
+	            newDiv.setAttribute('id', id);
+	            newDiv.setAttribute('class', 'tile');
+	            newDiv.setAttribute('style', 'width:' + width + 'px; height:' + (width - 10) + 'px');
+	
+	            $(newDiv).mousedown(function (event) {
+	                self.lastId = id;
+	                event.preventDefault();
+	                switch (event.which) {
+	                    case 1:
+	                        //left mouse button pressed
+	                        if (self.mineLocations[id - 1] == 1) {
+	                            //clicked on a mine
+	                            newDiv.setAttribute('class', 'bombed');
+	
+	                            //game lost
+	                            self.gameLost();
+	                        }
+	                        else {
+	                            var adjacentTiles = self.getAdjacentTiles(id);
+	                            adjacentTiles.push(id);
+	                            self.processTiles(adjacentTiles);
+	                        }
+	                        break;
+	                    case 2:
+	                        //middle mouse button pressed
+	                        alert('Middle mouse button has no function here...');
+	                        break;
+	                    case 3:
+	                        //right mouse button pressed, add flag to tile
+	                        if (newDiv.getAttribute('class') == "tile") {
+	                            newDiv.setAttribute('class', 'flagged');
+	                        }
+	                        else if (newDiv.getAttribute('class') == "flagged") {
+	                            newDiv.setAttribute('class', 'tile');
+	                        }
+	                        break;
+	                    default:
+	                        alert('Non-standard mouse button clicked...');
+	                }
+	            });
+	
+	            //add div to board
+	            $("#board").append(newDiv);
+        	};
+        	this.addMines = function () {
+        		var i = 0;
+	            while (i < this.mineCount) {                
+	                var mineId = Math.floor(Math.random() * (tileCount));
+	                if (self.mineLocations[mineId] == null) {
+	                    self.mineLocations[mineId] = 1;
+	                    i++;                    
+	                }                
+	            }
+        	};
+        	this.setBoard = function () {
+        		//get tile width
+	            //var tileWidth = $("#board").width() / xTiles;
+	            var tileWidth = 60;
+	            var board = document.getElementById('board');
+	            board.setAttribute('style', 'width: ' + (tileWidth * self.xTiles) + 'px;height: ' + (tileWidth * self.xTiles) + 'px');
+	            
+	            for (var i = 1; i <= self.tileCount(); i++) {
+	                self.createTile(tileWidth-2, i);
+	            }
+	            self.addMines();
+        	};
+        	this.getAdjacentTiles = function (id) {
+	            var adjacentTiles = [];            
+	            
+	            //try to get north tile id
+	            if ((id - self.xTiles) > 0) {
+	                adjacentTiles[0] = id - self.xTiles;                
+	            }
+	
+	            //try to get north east tile id
+	            if (adjacentTiles[0] != null) {
+	                //check fraction to see if the north tile id number is at the end of board row                
+	                var northFraction = adjacentTiles[0] / xTiles - Math.floor(adjacentTiles[0] / self.xTiles);                
+	
+	                if (northFraction != 0) {                    
+	                    //fraction of 0 means the tile is at the right side of the board
+	                    adjacentTiles[1] = adjacentTiles[0] + 1;                    
+	                }
+	            }
+	
+	            //try to get east tile id
+	            if ((id + 1) <= self.tileCount()) {                
+	                var currentFraction = id / xTiles - Math.floor(id / xTiles);
+	                var eastFraction = (id + 1) / xTiles - Math.floor((id + 1) / xTiles);
+	                
+	                if (currentFraction != 0 && (eastFraction > currentFraction || eastFraction == 0)) {
+	                    adjacentTiles[2] = id + 1;
+	                }
+	            }
+	
+	            //try to get south east tile id
+	            if ((adjacentTiles[2] + xTiles) <= self.tileCount()) {
+	                //if we can add another row of tiles to east tile id and stay within total tile count, there is a tile at south east position.                
+	                adjacentTiles[3] = adjacentTiles[2] + self.xTiles;
+	            }            
+	
+	            //try to get south tile id
+	            if ((id + xTiles) <= self.tileCount()) {            
+	                //if we can add another row of tiles to current tile id and stay within total tile count, there is a tile at south position.                
+	                adjacentTiles[4] = id + self.xTiles;
+	            }
+	
+	            //try to get south west tile id
+	            if (adjacentTiles[4] != null) {
+	                var southWestFraction = (adjacentTiles[4] - 1) / self.xTiles - Math.floor((adjacentTiles[4] - 1) / self.xTiles);                
+	
+	                if (southWestFraction != 0) {
+	                    //fraction of 0 means the tile is at the right side of the board
+	                    adjacentTiles[5] = adjacentTiles[4] - 1;
+	                }
+	            }
+	
+	            //try to get west tile id            
+	            if (((id - 1) / xTiles - Math.floor((id - 1) / self.xTiles)) != 0) {
+	                //if south west tile exist, west tile exist
+	                adjacentTiles[6] = id - 1;                 
+	            }
+	
+	            //check for north west tile id
+	            if (adjacentTiles[0] != null && adjacentTiles[6] != null) {
+	                //north west tile exist between the north and west tile
+	                adjacentTiles[7] = adjacentTiles[0] - 1;                
+	            }
+	
+	            return adjacentTiles;
+	        };
+	        this.gameLost = function () {
+	            //disable mouse clicks
+	            self.disableTiles();
+	
+	            for (var i = 1; i <= self.tileCount(); i++) {
+	                if (self.checkMine(i)) {
+	                    //show all mines
+	                    var tile = document.getElementById(i);
+	                    tile.setAttribute('class', 'bombed');
+	                }
+	            }            
+	            alert("Boom! Game over.");
+	        };
+	        this.checkMine = function (id) {
+	            for (var i = 0; i < self.mineLocations.length; i++) {
+	                if (self.mineLocations[id - 1] == 1) {
+	                    //tile contains mine                    
+	                    return true;
+	                }
+	            }
+	            return false;
+	        };
+	        this.processTiles = function (adjacentTiles) {
+	            for (var i = 0; i < adjacentTiles.length; i++) {
+	                if (adjacentTiles[i] != null) {
+	                    var id = adjacentTiles[i];
+	                    var containsMine = false;
+	
+	                    //first check if tile is mine
+	                    containsMine = self.checkMine(id);
+	
+	                    if (containsMine == false) {
+	                        //continue to calculate number of adjacent mines, display number in tile
+	                        var mineCount = 0;
+	                        var tile = document.getElementById(id);
+	                        if (tile.getAttribute('class') != "flagged") {
+	                            if (tile.getAttribute('class') == 'tile' && self.xTiles < 16) {
+	                                $(tile).hide();
+	                                tile.setAttribute('class', 'tileClicked');
+	                                $(tile).fadeIn("slow");
+	                            }
+	                            else {
+	                                tile.setAttribute('class', 'tileClicked');
+	                            }
+	
+	                            var adjacentTiles2 = self.getAdjacentTiles(id);
+	                            for (var j = 0; j < adjacentTiles2.length; j++) {
+	                                if (self.checkMine(adjacentTiles2[j])) {
+	                                    mineCount++;
+	                                }
+	                            }
+	
+	                            //display mine count in tile
+	                            switch (mineCount) {
+	                                case 0:
+	                                    var temp = self.getAdjacentTiles(id);
+	                                    for (var k = 0; k < temp.length; k++) {
+	                                        if ($.inArray(temp[k], adjacentTiles) == -1) {
+	                                            adjacentTiles.push(temp[k]);
+	                                        }
+	                                    }
+	                                    break;
+	                                case 1:
+	                                    $(tile).html("<span style='color: green; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                                case 2:
+	                                    $(tile).html("<span style='color: blue; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                                case 3:
+	                                    $(tile).html("<span style='color: red; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                                case 4:
+	                                    $(tile).html("<span style='color: darkblue; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                                case 5:
+	                                    $(tile).html("<span style='color: darkred; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                                case 6:
+	                                    $(tile).html("<span style='color: lightblue; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                                case 7:
+	                                    $(tile).html("<span style='color: orange; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                                case 8:
+	                                    $(tile).html("<span style='color: ivory; font-weight: bold'>" + mineCount + "</span>");
+	                                    break;
+	                            }
+	
+	                            //unbind click event
+	                            $(tile).unbind('mousedown');
+	                        }
+	                    }
+	                }
+	            }
+	            
+	            return mineCount;
+	        }; 
+	        this.cheat = function () {            
+	            if (self.lastId != null)
+	            {
+	                var adjacentTiles = self.getAdjacentTiles(self.lastId);
+	                for (var i = 0; i < adjacentTiles.length; i++) {                    
+	                    if (self.checkMine(adjacentTiles[i])) {                        
+	                        var tile = document.getElementById(adjacentTiles[i]);
+	                        tile.setAttribute('class', 'cheat');
+	                    }                    
+	                    //check adjacent tiles of adjacent tiles for mines
+	                    var adjacentTiles2 = self.getAdjacentTiles(adjacentTiles[i]);
+	                    for (var j = 0; j < adjacentTiles2.length; j++) {                        
+	                        if (self.checkMine(adjacentTiles2[j])) {
+	                            var tile = document.getElementById(adjacentTiles2[j]);
+	                            tile.setAttribute('class', 'cheat');
+	                        }
+	                    }                                    
+	                }
+	            }
+	        };
+	        this.disableTiles = function () {
+	            //disable all tiles            
+	            for (var i = 1; i <= self.tileCount(); i++) {
+	                var tile = document.getElementById(i);
+	                $(tile).unbind('mousedown');
+	            }
+	        };
+	        this.checkWin = function () {            
+	            for (var i = 0; i < self.tileCount(); i++) {
+	                var tile = document.getElementById(i + 1);                
+	                if (self.mineLocations[i] == null && (tile.getAttribute('class') == "tile" || tile.getAttribute('class') == "flagged")) {
+	                    //not done yet
+	                    self.gameLost();
+	                    return;
+	                }
+	            }            
+	            self.disableTiles();
+	            alert("You win!");            
+	        };
+        } 
+    </script>
+</head>
+<body>
+    <div id="container">
+        <div id="menu">
+            <table cellpadding="3">
+                <tr>
+                    <td>Number of tiles per side: </td>
+                    <td><input id="boardSize" value="8" size="3" type="text" /></td>
+                    <td rowspan="2">
+                        <input id="startButton" onClick="window.location.reload()" class="blue_button" type="button" value="New Game" />&nbsp;
+                        <input id="validateButton" class="blue_button" type="button" value="Validate" />&nbsp;
+                        <input id="cheatButton" onClick="cheat()" class="blue_button" type="button" value="Cheat" />&nbsp;
+                    </td>                    
+                </tr>
+                <tr>
+                    <td>Number of mines: </td>
+                    <td><input id="mineCount" value="10" size="3" type="text" /></td>
+                </tr>                
+            </table>
+        </div>
+    </div>
+    <div id="board">
+            
+    </div>
+</body>
+</html>
