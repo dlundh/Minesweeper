@@ -17,9 +17,9 @@
         function start() {
     		var mineCount = document.getElementById("mineCount").value;
         	var xTiles = document.getElementById("boardSize").value;
-            var tileCount = xTiles * xTiles;
-            xTiles = +xTiles;
-            if (mineCount > (tileCount)) {
+        	var tileCount = xTiles * xTiles;
+        	xTiles = +xTiles;
+        	if (mineCount > (tileCount)) {
                 $("#mineCount").val(tileCount);
                 mineCount = tileCount;
             }            
@@ -28,21 +28,21 @@
         }        
         
         function Board (xTiles, mineCount) {
-        	var self = this;
-        	this.xTiles = xTiles;        	
-        	this.mineCount = mineCount;
-        	this.mineLocations = [];
-        	this.adjacentTiles = [];
-        	this.lastId;        	
-        	var validateButton = document.getElementById("validateButton");
-        	var cheatButton = document.getElementById("cheatButton");
-        	validateButton.addEventListener("click", function () {self.checkWin();}, false);
-        	cheatButton.addEventListener("click", function () {self.cheat();}, false);
-        	this.tileCount = function () {
-        		return xTiles * xTiles;
-        	}
-        	this.createTile = function (width, id) {
-        		var newDiv = document.createElement('div');
+	    	var self = this;
+	    	this.xTiles = xTiles;        	
+	    	this.mineCount = mineCount;
+	    	this.mineLocations = [];
+	    	this.adjacentTiles = [];
+	    	this.lastId;        	
+	    	var validateButton = document.getElementById("validateButton");
+	    	var cheatButton = document.getElementById("cheatButton");
+	    	validateButton.addEventListener("click", function () {self.checkWin();}, false);
+	    	cheatButton.addEventListener("click", function () {self.cheat();}, false);
+	    	this.tileCount = function () {
+	    		return xTiles * xTiles;
+	    	}
+	    	this.createTile = function (width, id) {
+	    		var newDiv = document.createElement('div');
 	            newDiv.setAttribute('id', id);
 	            newDiv.setAttribute('class', 'tile');
 	            newDiv.setAttribute('style', 'width:' + width + 'px; height:' + (width - 10) + 'px');
@@ -86,9 +86,9 @@
 	
 	            //add div to board
 	            $("#board").append(newDiv);
-        	};
-        	this.addMines = function () {
-        		var i = 0;
+	    	};
+	    	this.addMines = function () {
+	    		var i = 0;
 	            while (i < self.mineCount) {                
 	                var mineId = Math.floor(Math.random() * (self.tileCount()));
 	                if (self.mineLocations[mineId] == null) {
@@ -96,9 +96,9 @@
 	                    i++;                    
 	                }                
 	            }
-        	};
-        	this.setBoard = function () {
-        		//get tile width
+	    	};
+	    	this.setBoard = function () {
+	    		//get tile width
 	            //var tileWidth = $("#board").width() / xTiles;
 	            var tileWidth = 60;
 	            var board = document.getElementById('board');
@@ -109,8 +109,8 @@
 	                self.createTile(tileWidth-2, i);
 	            }
 	            self.addMines();
-        	};
-        	this.getAdjacentTiles = function (id) {
+	    	};
+	    	this.getAdjacentTiles = function (id) {
 	            var adjacentTiles = [];            
 	            
 	            //try to get north tile id
