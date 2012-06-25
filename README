@@ -1,3 +1,3 @@
 A Javascript/JQuery web implementation of the classic game Minesweeper. 
 Try it online here: http://www.orbstudio.net/minesweeper/index.htm
-Works best in Firefox
+Works best in non-IE browsers
