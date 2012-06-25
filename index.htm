@@ -15,11 +15,17 @@
         });
         
         function start() {
+        	//clear all events from buttons by replacing them
+        	//avoids multiple click events from board objects        	
+    		$("#validateButton").remove();
+    		$("#cheatButton").remove();
+    		$("#buttons").append("<input id='validateButton' class='blue_button' type='button' value='Validate' />");
+            $("#buttons").append("<input id='cheatButton' class='blue_button' type='button' value='Cheat' />");
     		var mineCount = document.getElementById("mineCount").value;
         	var xTiles = document.getElementById("boardSize").value;
-        	var tileCount = xTiles * xTiles;
-        	xTiles = +xTiles;
-        	if (mineCount > (tileCount)) {
+            var tileCount = xTiles * xTiles;
+            xTiles = +xTiles;
+            if (mineCount > (tileCount)) {
                 $("#mineCount").val(tileCount);
                 mineCount = tileCount;
             }            
@@ -28,21 +34,22 @@
         }        
         
         function Board (xTiles, mineCount) {
-	    	var self = this;
-	    	this.xTiles = xTiles;        	
-	    	this.mineCount = mineCount;
-	    	this.mineLocations = [];
-	    	this.adjacentTiles = [];
-	    	this.lastId;        	
-	    	var validateButton = document.getElementById("validateButton");
-	    	var cheatButton = document.getElementById("cheatButton");
-	    	validateButton.addEventListener("click", function () {self.checkWin();}, false);
-	    	cheatButton.addEventListener("click", function () {self.cheat();}, false);
-	    	this.tileCount = function () {
-	    		return xTiles * xTiles;
-	    	}
-	    	this.createTile = function (width, id) {
-	    		var newDiv = document.createElement('div');
+        	var self = this;
+        	this.xTiles = xTiles;
+        	this.mineCount = mineCount;
+        	this.mineLocations = [];
+        	this.adjacentTiles = [];
+        	this.lastId;        	
+        	this.validateButton = $("#validateButton");
+        	this.validateButton.bind('click', function () {self.checkWin();});
+        	this.cheatButton = $("#cheatButton");
+        	this.cheatButton.bind('click', function () {self.cheat();});
+        	
+        	this.tileCount = function () {
+        		return xTiles * xTiles;
+        	}
+        	this.createTile = function (width, id) {
+        		var newDiv = document.createElement('div');
 	            newDiv.setAttribute('id', id);
 	            newDiv.setAttribute('class', 'tile');
 	            newDiv.setAttribute('style', 'width:' + width + 'px; height:' + (width - 10) + 'px');
@@ -86,9 +93,9 @@
 	
 	            //add div to board
 	            $("#board").append(newDiv);
-	    	};
-	    	this.addMines = function () {
-	    		var i = 0;
+        	};
+        	this.addMines = function () {
+        		var i = 0;
 	            while (i < self.mineCount) {                
 	                var mineId = Math.floor(Math.random() * (self.tileCount()));
 	                if (self.mineLocations[mineId] == null) {
@@ -96,9 +103,9 @@
 	                    i++;                    
 	                }                
 	            }
-	    	};
-	    	this.setBoard = function () {
-	    		//get tile width
+        	};
+        	this.setBoard = function () {
+        		//get tile width
 	            //var tileWidth = $("#board").width() / xTiles;
 	            var tileWidth = 60;
 	            var board = document.getElementById('board');
@@ -109,8 +116,8 @@
 	                self.createTile(tileWidth-2, i);
 	            }
 	            self.addMines();
-	    	};
-	    	this.getAdjacentTiles = function (id) {
+        	};
+        	this.getAdjacentTiles = function (id) {
 	            var adjacentTiles = [];            
 	            
 	            //try to get north tile id
@@ -300,11 +307,13 @@
 	            }
 	        };
 	        this.checkWin = function () {            
+	            $("#validateButton").unbind();
+	            $("#cheatButton").unbind();
 	            for (var i = 0; i < self.tileCount(); i++) {
 	                var tile = document.getElementById(i + 1);                
 	                if (self.mineLocations[i] == null && (tile.getAttribute('class') == "tile" || tile.getAttribute('class') == "flagged")) {
 	                    //not done yet
-	                    self.gameLost();
+	                    self.gameLost();	                    
 	                    return;
 	                }
 	            }            
@@ -321,10 +330,8 @@
                 <tr>
                     <td>Number of tiles per side: </td>
                     <td><input id="boardSize" value="8" size="3" type="text" /></td>
-                    <td rowspan="2">
-                        <input id="startButton" onclick="start()" class="blue_button" type="button" value="New Game" />&nbsp;
-                        <input id="validateButton" class="blue_button" type="button" value="Validate" />&nbsp;
-                        <input id="cheatButton" class="blue_button" type="button" value="Cheat" />&nbsp;
+                    <td id="buttons" rowspan="2">
+                        <input id="startButton" onclick="start()" class="blue_button" type="button" value="New Game" />                       
                     </td>                    
                 </tr>
                 <tr>
