@@ -80,6 +80,7 @@ td
 }
 .blue_button
 {
+    margin-right: 5px;
     -webkit-transition-delay:initial, initial;
     -webkit-transition-duration:0.25s, 0s;
     -webkit-transition-property:all, text-shadow;
